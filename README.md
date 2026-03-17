@@ -3,38 +3,47 @@
 ## Exploratory Data Analysis (EDA)
 EDA is performed in `eda.ipynb` on the raw [Kaggle resume dataset](https://www.kaggle.com/datasets/dare2dream/resume-extraction) (`data/raw_data.csv`), which contains ~1M rows across 10 columns (Gender, Education, Specialization, Skills, Certifications, Job_status, Job_title, Yearly salary, etc.).
 
-Key findings:
+**Key findings:**
+- **Missing values**: Gender was missing for ~23% of rows (~244K). Several other fields (Job_title, Highest Qualification) had missing values as well
+- **Gender distribution**: The dataset skews male, with about a 2:1 male-to-female ratio among non-null entries  
+        <img width="537" height="354" alt="Screenshot 2026-03-17 at 2 36 31 PM" src="https://github.com/user-attachments/assets/4c19d10b-f627-47b6-9ed6-c4dbda286148" />
+  
+- **Employment by gender**: There is a significant difference in employment rates between male and female candidates, with male candidates being offered the job more than female candidates  
+        <img width="537" height="409" alt="Screenshot 2026-03-17 at 2 37 40 PM" src="https://github.com/user-attachments/assets/4c48d52f-ef7e-4563-8523-2efcf7bc923e" />
 
-- **Missing values** — Gender was missing for ~23% of rows (~244K); several other fields (Job_title, Highest Qualification) had significant gaps.
-- **Gender distribution** — The dataset skews female (~2:1 female-to-male ratio among non-null entries).
-- **Employment by gender** — There is a difference in employment rates between male and female candidates, motivating the bias study.
-- **Salary by gender** — Average salary differed between genders, with males earning slightly more on average.
-- **Gender by job title** — Across the top 15 job titles, gender representation was uneven, with certain roles dominated by one gender.
+- **Salary by gender**: Average salary differed between genders, with males earning slightly more on average  
+        <img width="489" height="415" alt="Screenshot 2026-03-17 at 2 38 48 PM" src="https://github.com/user-attachments/assets/69eb52bc-ceae-42ea-b172-ce9819cdc57d" />
+
+
+- **Gender distribution by job title**: Across the top 15 job titles, gender representation was uneven, with most roles being dominated by males  
+        <img width="788" height="661" alt="Screenshot 2026-03-17 at 2 36 13 PM" src="https://github.com/user-attachments/assets/032c847c-839a-4fde-a3ca-b34b4ba24776" />
+
+
 
 ## Feature Engineering
 
 Feature Engineering data source is `data/resume_extraction.csv` and the following steps are written to `data/resume_features.csv`:
 
-1. **Clean text fields** — standardize education names, strip whitespace, replace placeholder values with NaN
-2. **Parse skills & interests** — split free-text fields on commas/semicolons into lists
-3. **Create education features** — `education_level` (ordinal 1–3: Diploma → Bachelor's → Master's), `specialization_domain` (STEM / Business / Humanities), `highest_qualification_level`
-4. **Create skills features** — `skill_count`, `tech_skill_count`, `soft_skill_count`, `has_programming_skills`, `has_soft_skills`
-5. **Create alignment feature** — `education_job_match`: 1 if the candidate's domain aligns with their job title keywords
-6. **Create certification & employment labels** — `has_certification` (binary), `is_employed` (binary target from `Job_status`)
-7. **Create salary features** — `yearly_salary` (numeric), `salary_bucket` (low / medium / high)
-8. **Create job title feature** — `job_title_length` (character count)
+1. **Clean text fields**: standardize education names, strip whitespace, replace placeholder values with NaN
+2. **Parse skills & interests**: split free-text fields on commas/semicolons into lists
+3. **Create education features**: `education_level` (ordinal 1–3: Diploma → Bachelor's → Master's), `specialization_domain` (STEM / Business / Humanities), `highest_qualification_level`
+4. **Create skills features**: `skill_count`, `tech_skill_count`, `soft_skill_count`, `has_programming_skills`, `has_soft_skills`
+5. **Create alignment feature**: `education_job_match`: 1 if the candidate's domain aligns with their job title keywords
+6. **Create certification & employment labels**: `has_certification` (binary), `is_employed` (binary target from `Job_status`)
+7. **Create salary features**: `yearly_salary` (numeric), `salary_bucket` (low / medium / high)
+8. **Create job title feature**: `job_title_length` (character count)
 
 `Gender` is retained in the output for bias evaluation but excluded from model inputs.
 
 ## Fine-Tuning
 
-Fine-tuning is performed in `finetune.ipynb` using [Unsloth](https://github.com/unslothai/unsloth) for 2× faster training
+Fine-tuning is performed in `finetune.ipynb` using [Unsloth](https://github.com/unslothai/unsloth) for faster training
 
 **Base model:** `unsloth/llama-2-7b-bnb-4bit` (LLaMA-2 7B, 4-bit quantized)
 
 **LoRA:** rank 16, alpha 16, targeting all attention and MLP projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`), ~40M trainable parameters (0.59% of total).
 
-**Data:** `data/flipped_dataset.csv` — three separate runs with subsets of 5K, 10K, and 20K samples, each split 80/20 into train/eval.
+**Data:** `data/flipped_dataset.csv` three separate runs with subsets of 5K, 10K, and 20K samples, each split 80/20 into train/eval.
 
 **Prompt :** Instruction-following prompt listing candidate features (education level, specialization, skill counts, certifications, job-education match, and Gender) with the target `is_employed` label as the response. Gender is intentionally included so the model can learn to ignore it.
 
