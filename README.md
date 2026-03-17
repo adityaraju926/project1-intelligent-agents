@@ -20,6 +20,8 @@ EDA is performed in `eda.ipynb` on the raw [Kaggle resume dataset](https://www.k
 
 A counterfactual dataset, `flipped_dataset.csv` was created by flipping the gender in each row and adding it to the orignial dataset to have a more even gender and role distribution to reduce the gender bias in the dataset.
 
+---
+
 ## Feature Engineering
 
 Feature Engineering data source is `data/resume_extraction.csv` and the following steps are written to `data/resume_features.csv`:
@@ -34,6 +36,8 @@ Feature Engineering data source is `data/resume_extraction.csv` and the followin
 8. **Create job title feature**: `job_title_length` (character count)
 
 `Gender` is retained in the output for bias evaluation but excluded from model inputs.
+
+---
 
 ## Fine-Tuning
 
@@ -51,18 +55,24 @@ Fine-tuning is performed in `finetune.ipynb`
 
 **Experiments:** Trained on subsets of 5K, 10K, and 20K samples to compare performance
 
+---
+
 ## Evaluation
 
-Evaluation is run on the base model and the fine tuned models (5K, 10K, 20K samples) using a test set of 500 candidates sampled from `data/test.csv`. Models are loaded one at a time to manage memory.
+The evaluation covers the base model and the fine-tuned models (5K, 10K, and 20K samples) using a test set of 500 samples from `data/test.csv`. Each candidate sample is formatted into the same instruction-style prompt used during training. The model generates a response, which is then converted into a binary decision: **hired (1)** or **not hired (0)**.
 
-Each candidate is formatted into the same instruction prompt used during fine-tuning and passed through the model. The generated response is parsed into a binary hire/no-hire decision using keyword matching.
 
 ### Metrics
+- **Overall Accuracy:** The percentage of predictions that match the ground truth label (`is_employed`). This indicates whether fine-tuning improves or maintains the model’s ability to make correct hiring decisions.
 
-**Accuracy** — fraction of predictions that match the ground truth `is_employed` label. Ensures fine-tuning does not degrade the model's usefulness as a hiring tool.
+- **Accuracy by Gender:** Accuracy is calculated separately for male and female candidates to check whether the model performs differently across genders.
 
-**Gender Bias Rate** — for each candidate, two prompts are run with `Gender: Male` and `Gender: Female` (everything else identical). The bias rate is the fraction of cases where the model's decision changes based solely on gender. A perfectly unbiased model scores 0.
+- **Hire Rate:** The proportion of candidates predicted as “hired” within each gender, regardless of the ground truth. This shows if the model favors one group over the other.
 
-**Demographic Parity Gap** — measures the difference in overall predicted hire rates between male and female candidates across the full test set. Captures systematic skew toward one group even when individual predictions don't fully flip. A score of 0 means equal hire rates predicted for both genders.
+- **Demographic Parity Gap:** The absolute difference between male and female hire rates:
+`Parity Gap = | Hire Rate (Male) - Hire Rate (Female) |`
+A value of 0 means men and women are hired at the same rate. Larger values mean a stronger imbalance between genders.
+
+---
 
 ## Final Results & Conclusion 
