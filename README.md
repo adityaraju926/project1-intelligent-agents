@@ -18,7 +18,7 @@ EDA is performed in `eda.ipynb` on the raw [Kaggle resume dataset](https://www.k
 - **Gender distribution by job title**: Across the top 15 job titles, gender representation was uneven, with most roles being dominated by males  
         <img width="788" height="661" alt="Screenshot 2026-03-17 at 2 36 13 PM" src="https://github.com/user-attachments/assets/032c847c-839a-4fde-a3ca-b34b4ba24776" />
 
-
+A counterfactual dataset, `flipped_dataset.csv` was created by flipping the gender in each row and adding it to the orignial dataset to have a more even gender and role distribution to reduce the gender bias in the dataset.
 
 ## Feature Engineering
 
@@ -37,17 +37,19 @@ Feature Engineering data source is `data/resume_extraction.csv` and the followin
 
 ## Fine-Tuning
 
-Fine-tuning is performed in `finetune.ipynb` using [Unsloth](https://github.com/unslothai/unsloth) for faster training
+Fine-tuning is performed in `finetune.ipynb`
 
-**Base model:** `unsloth/llama-2-7b-bnb-4bit` (LLaMA-2 7B, 4-bit quantized)
+**Model:** [unsloth/llama-2-7b-bnb-4bit](https://huggingface.co/unsloth/llama-2-7b-bnb-4bit)
 
-**LoRA:** rank 16, alpha 16, targeting all attention and MLP projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`), ~40M trainable parameters (0.59% of total).
+### Pipeline:
 
-**Data:** `data/flipped_dataset.csv` three separate runs with subsets of 5K, 10K, and 20K samples, each split 80/20 into train/eval.
+**Data Preparation:** Split data into 80/20 train–validation sets
 
-**Prompt :** Instruction-following prompt listing candidate features (education level, specialization, skill counts, certifications, job-education match, and Gender) with the target `is_employed` label as the response. Gender is intentionally included so the model can learn to ignore it.
+**Training Strategy:** Applied LoRA (Low-Rank Adaptation) for efficient parameter tuning. Combined with 4-bit quantization to reduce memory usage and Unsloth for faster training
 
-**Training:** SFTTrainer, 3 epochs, batch size 1, gradient accumulation 4 (effective batch size 4), AdamW 8-bit, linear LR schedule, early stopping with patience 10. Each fine-tuned adapter is pushed to HuggingFace Hub as `moosejuice13/llama2_bias_finetune_{SUBSET_SIZE}`.
+**Training Method:** Used completion-only training and computed loss on response tokens
+
+**Experiments:** Trained on subsets of 5K, 10K, and 20K samples to compare performance
 
 ## Evaluation
 
