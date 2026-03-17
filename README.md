@@ -1,8 +1,15 @@
 # Reducing Bias in AI Recruitment
 
 ## Exploratory Data Analysis (EDA)
+EDA is performed in `eda.ipynb` on the raw [Kaggle resume dataset](https://www.kaggle.com/datasets/dare2dream/resume-extraction) (`data/raw_data.csv`), which contains ~1M rows across 10 columns (Gender, Education, Specialization, Skills, Certifications, Job_status, Job_title, Yearly salary, etc.).
 
-## Data Preprocessing
+Key findings:
+
+- **Missing values** — Gender was missing for ~23% of rows (~244K); several other fields (Job_title, Highest Qualification) had significant gaps.
+- **Gender distribution** — The dataset skews female (~2:1 female-to-male ratio among non-null entries).
+- **Employment by gender** — There is a difference in employment rates between male and female candidates, motivating the bias study.
+- **Salary by gender** — Average salary differed between genders, with males earning slightly more on average.
+- **Gender by job title** — Across the top 15 job titles, gender representation was uneven, with certain roles dominated by one gender.
 
 ## Feature Engineering
 
@@ -20,6 +27,18 @@ Feature Engineering data source is `data/resume_extraction.csv` and the followin
 `Gender` is retained in the output for bias evaluation but excluded from model inputs.
 
 ## Fine-Tuning
+
+Fine-tuning is performed in `finetune.ipynb` using [Unsloth](https://github.com/unslothai/unsloth) for 2× faster training
+
+**Base model:** `unsloth/llama-2-7b-bnb-4bit` (LLaMA-2 7B, 4-bit quantized)
+
+**LoRA:** rank 16, alpha 16, targeting all attention and MLP projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`), ~40M trainable parameters (0.59% of total).
+
+**Data:** `data/flipped_dataset.csv` — three separate runs with subsets of 5K, 10K, and 20K samples, each split 80/20 into train/eval.
+
+**Prompt :** Instruction-following prompt listing candidate features (education level, specialization, skill counts, certifications, job-education match, and Gender) with the target `is_employed` label as the response. Gender is intentionally included so the model can learn to ignore it.
+
+**Training:** SFTTrainer, 3 epochs, batch size 1, gradient accumulation 4 (effective batch size 4), AdamW 8-bit, linear LR schedule, early stopping with patience 10. Each fine-tuned adapter is pushed to HuggingFace Hub as `moosejuice13/llama2_bias_finetune_{SUBSET_SIZE}`.
 
 ## Evaluation
 
