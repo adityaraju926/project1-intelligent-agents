@@ -1,7 +1,7 @@
 # Reducing Bias in AI Recruitment
 ## Focal Property
 
-The goal of this project is to reduce gender bias in AI recruitment systems. AI models used for hiring can unintentionally reinforce existing gender biases, favoring one group over another even when candidates are equally qualified. This project aims to reduce this bias by fine-tuning models to focus solely on qualifications to make  hiring decisions regardless of the candidate's gender.
+The goal of this project is to reduce gender bias in AI recruitment systems. AI models used for hiring can unintentionally reinforce existing gender biases, favoring one group over another even when candidates are equally qualified. This project aims to reduce this bias by fine-tuning models to focus solely on qualifications to make hiring decisions regardless of the candidate's gender.
 
 
 ## Dataset 
@@ -31,18 +31,16 @@ A counterfactual dataset, `flipped_dataset.csv` was created by flipping the gend
 
 ## Feature Engineering
 
-Feature Engineering data source is `data/resume_extraction.csv` and the following steps are written to `data/resume_features.csv`:
+Feature Engineering data source is `data/resume_extraction.csv` and the following steps are executed and written to `data/resume_features.csv`:
 
 1. **Clean text fields**: standardize education names, strip whitespace, replace placeholder values with NaN
-2. **Parse skills & interests**: split free-text fields on commas/semicolons into lists
-3. **Create education features**: `education_level` (ordinal 1–3: Diploma → Bachelor's → Master's), `specialization_domain` (STEM / Business / Humanities), `highest_qualification_level`
+2. **Parse skills & interests**: split fields on commas/semicolons into lists
+3. **Encoding features**: Encoding `education_level`, `highest_qualification_level` and `specialization_domain` columns
 4. **Create skills features**: `skill_count`, `tech_skill_count`, `soft_skill_count`, `has_programming_skills`, `has_soft_skills`
-5. **Create alignment feature**: `education_job_match`: 1 if the candidate's domain aligns with their job title keywords
-6. **Create certification & employment labels**: `has_certification` (binary), `is_employed` (binary target from `Job_status`)
-7. **Create salary features**: `yearly_salary` (numeric), `salary_bucket` (low / medium / high)
-8. **Create job title feature**: `job_title_length` (character count)
-
-`Gender` is retained in the output for bias evaluation but excluded from model inputs.
+5. **Create matching feature**: `education_job_match`: 1 if the candidate's domain aligns with their job title keywords
+6. **Create certification & employment features**: `has_certification` (binary from `Certifications`), `is_employed` (binary from `Job_status`)
+7. **Create salary features**: `yearly_salary`, `salary_bucket` (low / medium / high)
+8. **Create job title feature**: `job_title_length`
 
 ---
 
