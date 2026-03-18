@@ -76,19 +76,23 @@ The evaluation covers the base model and the fine-tuned models (5K, 10K, and 20K
 
 - **Hire Rate:** The proportion of candidates predicted as “hired” within each gender, regardless of the ground truth. This shows if the model favors one group over the other.
 
-- **Demographic Parity Gap:** The absolute difference between male and female hire rates:
+- **Parity Gap:** The absolute difference between male and female hire rates:
 `Parity Gap = | Hire Rate (Male) - Hire Rate (Female) |`
 A value of 0 means men and women are hired at the same rate. Larger values mean a stronger imbalance between genders.
 
 ---
 
-## Final Results & Conclusion 
-
-### Model Evaluation Results
+## Results
 
 | Model        | Accuracy | Male Accuracy | Female Accuracy | Hire Rate (Male) | Hire Rate (Female) | Parity Gap |
 |-------------|---------|---------------|----------------|-----------------|------------------|------------|
 | Base LLaMA-2 | 0.638  | 0.613         | 0.661          | 1.000           | 1.000            | 0.000      |
 | 5K Samples  | 0.938   | 0.934         | 0.942          | 0.605           | 0.650            | 0.045      |
 | 10K Samples | 0.950   | 0.959         | 0.942          | 0.597           | 0.634            | 0.038      |
-| 20K Samples | TBD     | TBD           | TBD            | TBD             | TBD              | TBD        |
+| 20K Samples | 0.950   | 0.959         | 0.942          | 0.580           | 0.611            | 0.031      |
+
+---
+
+## Conclusion
+
+These results show that fine-tuning significantly improves model performance, increasing accuracy from 0.638 in the base model to 0.950 with larger training datasets. The gap in hiring rates between male and female candidates decreased as more data was used which suggests that fine-tuning helped reduce bias in the hiring decisions. Overall, the results show that fine-tuning can make AI recruitment systems are more accurate and more fair, though small disparities between groups still remain
